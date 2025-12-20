@@ -25,18 +25,23 @@ const Grid: React.FC<GridProps> = ({ grid, cellStates, onCellClick, editMode, is
       const container = containerRef.current.parentElement;
       if (!container) return;
 
-      const containerWidth = container.clientWidth - 64; // padding
-      const containerHeight = container.clientHeight - 64;
+      // Use viewport dimensions for better sizing
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      
+      // Account for toolbar (~60px) and padding
+      const availableHeight = viewportHeight - 150;
+      const availableWidth = Math.min(viewportWidth - 100, 1400); // Max width constraint
       
       const rows = grid.length;
       const cols = grid[0]?.length || 0;
 
       // Calculate the maximum cell size that fits
-      const maxCellWidth = Math.floor(containerWidth / cols);
-      const maxCellHeight = Math.floor(containerHeight / rows);
+      const maxCellWidth = Math.floor(availableWidth / cols);
+      const maxCellHeight = Math.floor(availableHeight / rows);
       
-      const size = Math.min(maxCellWidth, maxCellHeight, 30); // Max 30px per cell
-      setCellSize(Math.max(size, 8)); // Min 8px per cell
+      const size = Math.min(maxCellWidth, maxCellHeight, 28); // Max 28px per cell
+      setCellSize(Math.max(size, 10)); // Min 10px per cell
     };
 
     calculateCellSize();

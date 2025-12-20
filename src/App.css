@@ -59,42 +59,57 @@ body {
   background: rgba(255, 255, 255, 0.1);
 }
 
-/* Content Area - Maze and Metrics Side by Side */
-.content-area {
-  display: flex;
-  gap: 24px;
-  padding: 24px;
+/* Main Grid - Maze on left, Metrics on right */
+.main-grid {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 16px;
+  padding: 16px 24px 0 24px;
   max-width: 1920px;
   margin: 0 auto;
   width: 100%;
-  flex: 1;
 }
 
-.maze-container {
-  flex: 1;
+.maze-section {
   display: flex;
   justify-content: center;
-  align-items: center;
-  padding: 32px;
+  align-items: flex-start;
+  padding: 20px;
   background: #242428;
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-  min-height: 600px;
 }
 
-.metrics-container {
-  width: 380px;
-  flex-shrink: 0;
+.metrics-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Analysis Container - Full width at bottom */
+.analysis-container {
+  padding: 16px 24px 24px 24px;
+  max-width: 1920px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.analysis-section-full {
+  background: #242428;
+  border-radius: 12px;
+  padding: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
 }
 
 /* Responsive design */
 @media (max-width: 1400px) {
-  .content-area {
-    flex-direction: column;
+  .main-grid {
+    grid-template-columns: 1fr;
   }
 
-  .metrics-container {
+  .metrics-sidebar {
     width: 100%;
   }
 }
@@ -238,9 +253,10 @@ button:not(:disabled):active {
 .metrics-panel {
   background: #242428;
   border-radius: 12px;
-  padding: 24px;
+  padding: 20px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  height: fit-content;
 }
 
 .metrics-header {

@@ -362,8 +362,8 @@ function App() {
         />
       </div>
 
-      <div className="content-area">
-        <div className="maze-container">
+      <div className="main-grid">
+        <div className="maze-section">
           <Grid
             grid={grid}
             cellStates={cellStates}
@@ -373,10 +373,16 @@ function App() {
           />
         </div>
 
-        <div className="metrics-container">
-          <MetricsPanel results={results} />
+        <div className="metrics-sidebar">
+          <MetricsPanel results={results} showAnalysis={false} />
         </div>
       </div>
+
+      {results.length > 1 && (
+        <div className="analysis-container">
+          <MetricsPanel results={results} showAnalysis={true} metricsOnly={false} />
+        </div>
+      )}
     </div>
   );
 }
