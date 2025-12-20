@@ -35,187 +35,93 @@ const Controls: React.FC<ControlsProps> = ({
   onEditModeChange,
   isRunning,
 }) => {
-  const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
 
   return (
     <>
-      <div className="control-panel">
+      <div className="toolbar-content">
         {/* Algorithm Selection */}
-        <div className="control-section">
-          <h3>Select Algorithm</h3>
-          <div className="btn-group">
-            {Object.values(Algorithm).map((algo) => (
-              <button
-                key={algo}
-                onClick={() => onAlgorithmSelect(algo)}
-                disabled={isRunning}
-                className={`btn ${selectedAlgorithm === algo ? 'btn-primary' : 'btn-secondary'}`}
-              >
-                {algo}
-              </button>
-            ))}
-          </div>
+        <div className="toolbar-group">
+          <span className="toolbar-label">Algorithm:</span>
+          {Object.values(Algorithm).map((algo) => (
+            <button
+              key={algo}
+              onClick={() => onAlgorithmSelect(algo)}
+              disabled={isRunning}
+              className={`btn btn-sm ${selectedAlgorithm === algo ? 'btn-primary' : 'btn-secondary'}`}
+            >
+              {algo}
+            </button>
+          ))}
         </div>
+
+        <div className="toolbar-divider" />
 
         {/* Run Controls */}
-        <div className="control-section">
-          <h3>Execution</h3>
-          <div className="btn-group">
-            <button
-              onClick={onRunAlgorithm}
-              disabled={!selectedAlgorithm || isRunning}
-              className="btn btn-success"
-              style={{ flex: '1 1 100%' }}
-            >
-              {isRunning ? '⚡ Running...' : `▶ Run ${selectedAlgorithm || 'Algorithm'}`}
-            </button>
-            
-            <button
-              onClick={onRunComparison}
-              disabled={isRunning}
-              className="btn btn-warning"
-              style={{ flex: '1 1 100%' }}
-            >
-              🔄 Compare All (3 Colors)
-            </button>
-            
-            <button
-              onClick={onResetVisualization}
-              disabled={isRunning}
-              className="btn btn-danger"
-            >
-              ⟲ Reset
-            </button>
-          </div>
+        <div className="toolbar-group">
+          <button
+            onClick={onRunAlgorithm}
+            disabled={!selectedAlgorithm || isRunning}
+            className="btn btn-sm btn-success"
+          >
+            {isRunning ? '⚡ Running...' : '▶ Run'}
+          </button>
+          
+          <button
+            onClick={onRunComparison}
+            disabled={isRunning}
+            className="btn btn-sm btn-warning"
+          >
+            🔄 Compare All
+          </button>
+          
+          <button
+            onClick={onResetVisualization}
+            disabled={isRunning}
+            className="btn btn-sm btn-danger"
+          >
+            ⟲ Reset
+          </button>
         </div>
 
-        {/* Quick Actions */}
-        <div className="control-section">
-          <h3>Quick Actions</h3>
-          <div className="btn-group">
-            <button
-              onClick={() => setShowSettingsModal(true)}
-              disabled={isRunning}
-              className="btn btn-primary"
-            >
-              ⚙️ Settings
-            </button>
-            
-            <button
-              onClick={() => setShowEditModal(true)}
-              disabled={isRunning}
-              className="btn btn-primary"
-            >
-              ✏️ Edit Maze
-            </button>
-          </div>
+        <div className="toolbar-divider" />
+
+        {/* Maze Controls */}
+        <div className="toolbar-group">
+          <button
+            onClick={onGenerateMaze}
+            disabled={isRunning}
+            className="btn btn-sm btn-primary"
+          >
+            🎲 Generate Maze
+          </button>
+          
+          <button
+            onClick={() => setShowEditModal(true)}
+            disabled={isRunning}
+            className="btn btn-sm btn-primary"
+          >
+            ✏️ Edit
+          </button>
         </div>
 
-        {/* Legend - Concurrent Mode Colors */}
-        <div className="control-section">
-          <h3>Concurrent Mode Legend</h3>
-          <div style={{ 
-            display: 'grid', 
-            gridTemplateColumns: '1fr', 
-            gap: '10px', 
-            fontSize: '0.875rem',
-            color: '#d1d5db'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <div style={{ 
-                width: '20px', 
-                height: '20px', 
-                backgroundColor: '#ef4444',
-                borderRadius: '4px',
-                boxShadow: '0 2px 4px rgba(239, 68, 68, 0.3)'
-              }} />
-              <span>DFS (Red)</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <div style={{ 
-                width: '20px', 
-                height: '20px', 
-                backgroundColor: '#3b82f6',
-                borderRadius: '4px',
-                boxShadow: '0 2px 4px rgba(59, 130, 246, 0.3)'
-              }} />
-              <span>BFS (Blue)</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <div style={{ 
-                width: '20px', 
-                height: '20px', 
-                backgroundColor: '#10b981',
-                borderRadius: '4px',
-                boxShadow: '0 2px 4px rgba(16, 185, 129, 0.3)'
-              }} />
-              <span>A* (Green)</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <div style={{ 
-                width: '20px', 
-                height: '20px', 
-                backgroundColor: '#8b5cf6',
-                borderRadius: '4px',
-                boxShadow: '0 2px 4px rgba(139, 92, 246, 0.3)'
-              }} />
-              <span>Overlap (Purple)</span>
-            </div>
-          </div>
+        <div className="toolbar-divider" />
+
+        {/* Speed Control */}
+        <div className="toolbar-group speed-control">
+          <span className="toolbar-label">Speed:</span>
+          <input
+            type="range"
+            min="1"
+            max="100"
+            value={animationSpeed}
+            onChange={(e) => onSpeedChange(Number(e.target.value))}
+            className="speed-slider-inline"
+            disabled={isRunning}
+          />
+          <span className="speed-value-inline">{animationSpeed}</span>
         </div>
       </div>
-
-      {/* Settings Modal */}
-      <Modal 
-        isOpen={showSettingsModal} 
-        onClose={() => setShowSettingsModal(false)}
-        title="⚙️ Settings"
-      >
-        <div className="settings-section">
-          <h3>Animation Speed</h3>
-          <div className="speed-slider-container">
-            <span className="speed-slider-label">Slow</span>
-            <input
-              type="range"
-              min="1"
-              max="100"
-              value={animationSpeed}
-              onChange={(e) => onSpeedChange(Number(e.target.value))}
-              className="speed-slider"
-            />
-            <span className="speed-slider-label">Fast</span>
-            <span className="speed-value">{animationSpeed}</span>
-          </div>
-        </div>
-
-        <div className="settings-section">
-          <h3>Maze Controls</h3>
-          <div className="btn-group">
-            <button
-              onClick={() => {
-                onGenerateMaze();
-                setShowSettingsModal(false);
-              }}
-              className="btn btn-primary"
-              style={{ flex: '1' }}
-            >
-              🎲 Generate New Maze
-            </button>
-            
-            <button
-              onClick={() => {
-                onClearMaze();
-                setShowSettingsModal(false);
-              }}
-              className="btn btn-secondary"
-              style={{ flex: '1' }}
-            >
-              🗑️ Clear Maze
-            </button>
-          </div>
-        </div>
-      </Modal>
 
       {/* Edit Modal */}
       <Modal 

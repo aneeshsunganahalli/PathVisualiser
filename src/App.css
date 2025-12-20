@@ -16,68 +16,86 @@ body {
 
 .app {
   min-height: 100vh;
-  padding: 24px;
-}
-
-.header {
-  text-align: center;
-  margin-bottom: 32px;
-  padding: 32px 24px;
-  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
-  border-radius: 12px;
-  color: white;
-  box-shadow: 0 10px 40px rgba(59, 130, 246, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.header h1 {
-  font-size: 2.5rem;
-  margin-bottom: 8px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-}
-
-.subtitle {
-  font-size: 1rem;
-  opacity: 0.9;
-  font-weight: 400;
-}
-
-.main-content {
-  display: grid;
-  grid-template-columns: 380px 1fr 380px;
-  gap: 24px;
-  max-width: 1920px;
-  margin: 0 auto;
-}
-
-.left-panel,
-.right-panel {
   display: flex;
   flex-direction: column;
-  gap: 20px;
 }
 
-.center-panel {
+/* Horizontal Toolbar - YouTube Style */
+.toolbar {
+  background: #242428;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 12px 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.toolbar-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  max-width: 1920px;
+  margin: 0 auto;
+  flex-wrap: wrap;
+}
+
+.toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toolbar-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #9ca3af;
+  white-space: nowrap;
+}
+
+.toolbar-divider {
+  width: 1px;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Content Area - Maze and Metrics Side by Side */
+.content-area {
+  display: flex;
+  gap: 24px;
+  padding: 24px;
+  max-width: 1920px;
+  margin: 0 auto;
+  width: 100%;
+  flex: 1;
+}
+
+.maze-container {
+  flex: 1;
   display: flex;
   justify-content: center;
-  align-items: flex-start;
+  align-items: center;
   padding: 32px;
   background: #242428;
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  min-height: 600px;
+}
+
+.metrics-container {
+  width: 380px;
+  flex-shrink: 0;
 }
 
 /* Responsive design */
 @media (max-width: 1400px) {
-  .main-content {
-    grid-template-columns: 1fr;
+  .content-area {
+    flex-direction: column;
   }
 
-  .left-panel,
-  .right-panel {
-    max-width: 100%;
+  .metrics-container {
+    width: 100%;
   }
 }
 
@@ -153,6 +171,11 @@ button:not(:disabled):active {
   font-weight: 600;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 0.813rem;
 }
 
 .btn:disabled {
@@ -401,6 +424,55 @@ button:not(:disabled):active {
   color: #3b82f6;
   min-width: 40px;
   text-align: right;
+}
+
+/* Inline Speed Slider for Toolbar */
+.speed-control {
+  min-width: 200px;
+}
+
+.speed-slider-inline {
+  width: 100px;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 2px;
+  background: #374151;
+  outline: none;
+}
+
+.speed-slider-inline::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #3b82f6;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.4);
+  transition: all 0.2s ease;
+}
+
+.speed-slider-inline::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+}
+
+.speed-slider-inline::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #3b82f6;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.4);
+}
+
+.speed-value-inline {
+  font-size: 0.813rem;
+  font-weight: 600;
+  color: #3b82f6;
+  min-width: 30px;
+  text-align: center;
 }
 
 /* Empty State */

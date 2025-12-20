@@ -345,32 +345,25 @@ function App() {
 
   return (
     <div className="app">
-      <header className="header">
-        <h1>🔍 AI Pathfinding Visualizer</h1>
-        <p className="subtitle">
-          Compare DFS, BFS, and A* search algorithms • Real-time concurrent visualization
-        </p>
-      </header>
+      <div className="toolbar">
+        <Controls
+          selectedAlgorithm={selectedAlgorithm}
+          onAlgorithmSelect={setSelectedAlgorithm}
+          onRunAlgorithm={runAlgorithm}
+          onRunComparison={runComparison}
+          onResetVisualization={resetVisualization}
+          onGenerateMaze={handleGenerateMaze}
+          onClearMaze={handleClearMaze}
+          animationSpeed={animationSpeed}
+          onSpeedChange={setAnimationSpeed}
+          editMode={editMode}
+          onEditModeChange={setEditMode}
+          isRunning={isRunning}
+        />
+      </div>
 
-      <div className="main-content">
-        <div className="left-panel">
-          <Controls
-            selectedAlgorithm={selectedAlgorithm}
-            onAlgorithmSelect={setSelectedAlgorithm}
-            onRunAlgorithm={runAlgorithm}
-            onRunComparison={runComparison}
-            onResetVisualization={resetVisualization}
-            onGenerateMaze={handleGenerateMaze}
-            onClearMaze={handleClearMaze}
-            animationSpeed={animationSpeed}
-            onSpeedChange={setAnimationSpeed}
-            editMode={editMode}
-            onEditModeChange={setEditMode}
-            isRunning={isRunning}
-          />
-        </div>
-
-        <div className="center-panel">
+      <div className="content-area">
+        <div className="maze-container">
           <Grid
             grid={grid}
             cellStates={cellStates}
@@ -380,7 +373,7 @@ function App() {
           />
         </div>
 
-        <div className="right-panel">
+        <div className="metrics-container">
           <MetricsPanel results={results} />
         </div>
       </div>

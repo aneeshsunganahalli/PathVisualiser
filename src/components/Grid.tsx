@@ -3,7 +3,7 @@
  * Displays the maze grid with cells colored based on their type and state
  */
 
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { CellType, CellState, EditMode } from '../types/maze.types';
 
 interface GridProps {
@@ -15,6 +15,36 @@ interface GridProps {
 }
 
 const Grid: React.FC<GridProps> = ({ grid, cellStates, onCellClick, editMode, isRunning }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [cellSize, setCellSize] = useState(18);
+
+  useEffect(() => {
+    const calculateCellSize = () => {
+      if (!containerRef.current || grid.length === 0) return;
+
+      const container = containerRef.current.parentElement;
+      if (!container) return;
+
+      const containerWidth = container.clientWidth - 64; // padding
+      const containerHeight = container.clientHeight - 64;
+      
+      const rows = grid.length;
+      const cols = grid[0]?.length || 0;
+
+      // Calculate the maximum cell size that fits
+      const maxCellWidth = Math.floor(containerWidth / cols);
+      const maxCellHeight = Math.floor(containerHeight / rows);
+      
+      const size = Math.min(maxCellWidth, maxCellHeight, 30); // Max 30px per cell
+      setCellSize(Math.max(size, 8)); // Min 8px per cell
+    };
+
+    calculateCellSize();
+    window.addEventListener('resize', calculateCellSize);
+    
+    return () => window.removeEventListener('resize', calculateCellSize);
+  }, [grid]);
+
   /**
    * Get cell color based on type and state
    */
@@ -64,6 +94,7 @@ const Grid: React.FC<GridProps> = ({ grid, cellStates, onCellClick, editMode, is
 
   return (
     <div
+      ref={containerRef}
       style={{
         display: 'inline-block',
         border: '2px solid rgba(59, 130, 246, 0.3)',
@@ -77,7 +108,7 @@ const Grid: React.FC<GridProps> = ({ grid, cellStates, onCellClick, editMode, is
           key={rowIndex}
           style={{
             display: 'flex',
-            height: '18px',
+            height: `${cellSize}px`,
           }}
         >
           {row.map((cell, colIndex) => {
@@ -89,8 +120,8 @@ const Grid: React.FC<GridProps> = ({ grid, cellStates, onCellClick, editMode, is
                 key={`${rowIndex}-${colIndex}`}
                 onClick={() => !isRunning && onCellClick(rowIndex, colIndex)}
                 style={{
-                  width: '18px',
-                  height: '18px',
+                  width: `${cellSize}px`,
+                  height: `${cellSize}px`,
                   backgroundColor: color,
                   border: '0.5px solid rgba(255, 255, 255, 0.05)',
                   cursor: getCursorStyle(),
