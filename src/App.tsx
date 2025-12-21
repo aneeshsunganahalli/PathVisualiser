@@ -10,6 +10,8 @@ import MetricsPanel from './components/MetricsPanel';
 import { executeDFS } from './algorithms/dfs';
 import { executeBFS } from './algorithms/bfs';
 import { executeAStar } from './algorithms/astar';
+import { executeWeightedAStar } from './algorithms/weightedAstar';
+import { executeIDAStar } from './algorithms/idaStar';
 import { generateMaze, createEmptyMaze } from './utils/mazeGenerator';
 import {
   CellType,
@@ -138,6 +140,12 @@ function App() {
         break;
       case Algorithm.ASTAR:
         result = executeAStar(grid, start, goal);
+        break;
+      case Algorithm.WEIGHTED_ASTAR:
+        result = executeWeightedAStar(grid, start, goal);
+        break;
+      case Algorithm.IDA_STAR:
+        result = executeIDAStar(grid, start, goal);
         break;
       default:
         return;
@@ -269,6 +277,121 @@ function App() {
   };
 
   /**
+   * Run comparison of A* variants (A*, Weighted A*, IDA*)
+   */
+  const runAStarComparison = async () => {
+    const { start, goal } = findPositions(grid);
+    if (!start || !goal) {
+      alert('Start or goal position not found!');
+      return;
+    }
+
+    setIsRunning(true);
+    resetVisualization();
+
+    // Execute all A* variants
+    const astarResult = executeAStar(grid, start, goal);
+    const weightedAstarResult = executeWeightedAStar(grid, start, goal);
+    const idaStarResult = executeIDAStar(grid, start, goal);
+
+    // Track which algorithms have explored each cell
+    const exploredBy: Map<string, Set<string>> = new Map();
+
+    const maxExplorationSteps = Math.max(
+      astarResult.explorationOrder.length,
+      weightedAstarResult.explorationOrder.length,
+      idaStarResult.explorationOrder.length
+    );
+
+    // Animate all A* variants concurrently with different colors
+    let step = 0;
+    const intervalId = setInterval(() => {
+      if (step < maxExplorationSteps) {
+        setCellStates((prev) => {
+          const newStates = prev.map((row) => [...row]);
+          
+          // Update A* exploration (Green)
+          if (step < astarResult.explorationOrder.length) {
+            const pos = astarResult.explorationOrder[step];
+            if (grid[pos.row][pos.col] !== CellType.START && grid[pos.row][pos.col] !== CellType.GOAL) {
+              const key = `${pos.row},${pos.col}`;
+              if (!exploredBy.has(key)) {
+                exploredBy.set(key, new Set());
+              }
+              exploredBy.get(key)!.add('astar');
+              
+              const algorithms = exploredBy.get(key)!;
+              if (algorithms.size === 1) {
+                newStates[pos.row][pos.col] = CellState.ASTAR_EXPLORED;
+              } else {
+                newStates[pos.row][pos.col] = CellState.EXPLORED;
+              }
+            }
+          }
+          
+          // Update Weighted A* exploration (Red)
+          if (step < weightedAstarResult.explorationOrder.length) {
+            const pos = weightedAstarResult.explorationOrder[step];
+            if (grid[pos.row][pos.col] !== CellType.START && grid[pos.row][pos.col] !== CellType.GOAL) {
+              const key = `${pos.row},${pos.col}`;
+              if (!exploredBy.has(key)) {
+                exploredBy.set(key, new Set());
+              }
+              exploredBy.get(key)!.add('weighted');
+              
+              const algorithms = exploredBy.get(key)!;
+              if (algorithms.size === 1) {
+                newStates[pos.row][pos.col] = CellState.DFS_EXPLORED;
+              } else {
+                newStates[pos.row][pos.col] = CellState.EXPLORED;
+              }
+            }
+          }
+          
+          // Update IDA* exploration (Blue)
+          if (step < idaStarResult.explorationOrder.length) {
+            const pos = idaStarResult.explorationOrder[step];
+            if (grid[pos.row][pos.col] !== CellType.START && grid[pos.row][pos.col] !== CellType.GOAL) {
+              const key = `${pos.row},${pos.col}`;
+              if (!exploredBy.has(key)) {
+                exploredBy.set(key, new Set());
+              }
+              exploredBy.get(key)!.add('ida');
+              
+              const algorithms = exploredBy.get(key)!;
+              if (algorithms.size === 1) {
+                newStates[pos.row][pos.col] = CellState.BFS_EXPLORED;
+              } else {
+                newStates[pos.row][pos.col] = CellState.EXPLORED;
+              }
+            }
+          }
+          
+          return newStates;
+        });
+        step++;
+      } else {
+        // Show final path (standard A* typically has the best path)
+        if (astarResult.path.length > 0) {
+          setCellStates((prev) => {
+            const newStates = prev.map((row) => [...row]);
+            for (const pos of astarResult.path) {
+              if (grid[pos.row][pos.col] !== CellType.START && grid[pos.row][pos.col] !== CellType.GOAL) {
+                newStates[pos.row][pos.col] = CellState.PATH;
+              }
+            }
+            return newStates;
+          });
+        }
+        
+        clearInterval(intervalId);
+        setResults([astarResult, weightedAstarResult, idaStarResult]);
+        setIsRunning(false);
+      }
+    }, Math.max(1, 101 - animationSpeed));
+  };
+
+  /**
    * Generate new random maze
    */
   const handleGenerateMaze = () => {
@@ -351,6 +474,7 @@ function App() {
           onAlgorithmSelect={setSelectedAlgorithm}
           onRunAlgorithm={runAlgorithm}
           onRunComparison={runComparison}
+          onRunAStarComparison={runAStarComparison}
           onResetVisualization={resetVisualization}
           onGenerateMaze={handleGenerateMaze}
           onClearMaze={handleClearMaze}

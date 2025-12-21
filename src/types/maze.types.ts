@@ -66,6 +66,8 @@ export enum Algorithm {
   DFS = 'DFS',
   BFS = 'BFS',
   ASTAR = 'A*',
+  WEIGHTED_ASTAR = 'Weighted A*',
+  IDA_STAR = 'IDA*',
 }
 
 // Edit mode for user interaction

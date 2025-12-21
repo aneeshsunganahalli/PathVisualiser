@@ -11,6 +11,7 @@ interface ControlsProps {
   onAlgorithmSelect: (algorithm: Algorithm) => void;
   onRunAlgorithm: () => void;
   onRunComparison: () => void;
+  onRunAStarComparison: () => void;
   onResetVisualization: () => void;
   onGenerateMaze: () => void;
   onClearMaze: () => void;
@@ -26,6 +27,7 @@ const Controls: React.FC<ControlsProps> = ({
   onAlgorithmSelect,
   onRunAlgorithm,
   onRunComparison,
+  onRunAStarComparison,
   onResetVisualization,
   onGenerateMaze,
   onClearMaze,
@@ -73,6 +75,15 @@ const Controls: React.FC<ControlsProps> = ({
             className="btn btn-sm btn-warning"
           >
             🔄 Compare All
+          </button>
+          
+          <button
+            onClick={onRunAStarComparison}
+            disabled={isRunning}
+            className="btn btn-sm btn-warning"
+            title="Compare A*, Weighted A*, and IDA*"
+          >
+            ⭐ Compare A* Variants
           </button>
           
           <button
