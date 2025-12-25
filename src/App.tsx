@@ -10,8 +10,6 @@ import MetricsPanel from './components/MetricsPanel';
 import { executeDFS } from './algorithms/dfs';
 import { executeBFS } from './algorithms/bfs';
 import { executeAStar } from './algorithms/astar';
-import { executeWeightedAStar } from './algorithms/weightedAstar';
-import { executeIDAStar } from './algorithms/idaStar';
 import { generateMaze, createEmptyMaze } from './utils/mazeGenerator';
 import {
   CellType,
@@ -141,12 +139,6 @@ function App() {
       case Algorithm.ASTAR:
         result = executeAStar(grid, start, goal);
         break;
-      case Algorithm.WEIGHTED_ASTAR:
-        result = executeWeightedAStar(grid, start, goal);
-        break;
-      case Algorithm.IDA_STAR:
-        result = executeIDAStar(grid, start, goal);
-        break;
       default:
         return;
     }
@@ -179,6 +171,10 @@ function App() {
 
     // Track which algorithms have explored each cell
     const exploredBy: Map<string, Set<string>> = new Map();
+    
+    // Track when each algorithm reaches the goal (step number)
+    const goalReachedStep: Record<string, number> = {};
+    const goalKey = `${goal.row},${goal.col}`;
 
     // Find the maximum exploration length to know when to stop
     const maxExplorationSteps = Math.max(
@@ -187,70 +183,83 @@ function App() {
       astarResult.explorationOrder.length
     );
 
+    // Animation timing
+    const animationStartTime = performance.now();
+    const stepDuration = Math.max(1, 101 - animationSpeed);
+
     // Animate all algorithms concurrently with different colors
     let step = 0;
     const intervalId = setInterval(() => {
       if (step < maxExplorationSteps) {
+        // Helper function to determine the correct cell state based on which algorithms explored it
+        const getCombinedState = (algorithms: Set<string>): CellState => {
+          const hasDfs = algorithms.has('dfs');
+          const hasBfs = algorithms.has('bfs');
+          const hasAstar = algorithms.has('astar');
+          
+          if (hasDfs && hasBfs && hasAstar) return CellState.ALL_EXPLORED;
+          if (hasDfs && hasBfs) return CellState.DFS_BFS_EXPLORED;
+          if (hasDfs && hasAstar) return CellState.DFS_ASTAR_EXPLORED;
+          if (hasBfs && hasAstar) return CellState.BFS_ASTAR_EXPLORED;
+          if (hasDfs) return CellState.DFS_EXPLORED;
+          if (hasBfs) return CellState.BFS_EXPLORED;
+          if (hasAstar) return CellState.ASTAR_EXPLORED;
+          return CellState.UNEXPLORED;
+        };
+
+        // Process all algorithm steps for this tick BEFORE updating state
+        // Track DFS
+        if (step < dfsResult.explorationOrder.length) {
+          const pos = dfsResult.explorationOrder[step];
+          const key = `${pos.row},${pos.col}`;
+          if (!exploredBy.has(key)) {
+            exploredBy.set(key, new Set());
+          }
+          exploredBy.get(key)!.add('dfs');
+          if (key === goalKey && !goalReachedStep['DFS']) {
+            goalReachedStep['DFS'] = step;
+          }
+        }
+        
+        // Track BFS
+        if (step < bfsResult.explorationOrder.length) {
+          const pos = bfsResult.explorationOrder[step];
+          const key = `${pos.row},${pos.col}`;
+          if (!exploredBy.has(key)) {
+            exploredBy.set(key, new Set());
+          }
+          exploredBy.get(key)!.add('bfs');
+          if (key === goalKey && !goalReachedStep['BFS']) {
+            goalReachedStep['BFS'] = step;
+          }
+        }
+        
+        // Track A*
+        if (step < astarResult.explorationOrder.length) {
+          const pos = astarResult.explorationOrder[step];
+          const key = `${pos.row},${pos.col}`;
+          if (!exploredBy.has(key)) {
+            exploredBy.set(key, new Set());
+          }
+          exploredBy.get(key)!.add('astar');
+          if (key === goalKey && !goalReachedStep['A*']) {
+            goalReachedStep['A*'] = step;
+          }
+        }
+
+        // Now update the cell states
         setCellStates((prev) => {
           const newStates = prev.map((row) => [...row]);
           
-          // Update DFS exploration (Red)
-          if (step < dfsResult.explorationOrder.length) {
-            const pos = dfsResult.explorationOrder[step];
-            if (grid[pos.row][pos.col] !== CellType.START && grid[pos.row][pos.col] !== CellType.GOAL) {
-              const key = `${pos.row},${pos.col}`;
-              if (!exploredBy.has(key)) {
-                exploredBy.set(key, new Set());
-              }
-              exploredBy.get(key)!.add('dfs');
-              
-              // Determine state based on how many algorithms have explored this cell
-              const algorithms = exploredBy.get(key)!;
-              if (algorithms.size === 1) {
-                newStates[pos.row][pos.col] = CellState.DFS_EXPLORED;
-              }
+          // Update all explored cells based on current exploredBy state
+          exploredBy.forEach((algorithms, key) => {
+            const [rowStr, colStr] = key.split(',');
+            const row = parseInt(rowStr);
+            const col = parseInt(colStr);
+            if (grid[row][col] !== CellType.START && grid[row][col] !== CellType.GOAL) {
+              newStates[row][col] = getCombinedState(algorithms);
             }
-          }
-          
-          // Update BFS exploration (Blue)
-          if (step < bfsResult.explorationOrder.length) {
-            const pos = bfsResult.explorationOrder[step];
-            if (grid[pos.row][pos.col] !== CellType.START && grid[pos.row][pos.col] !== CellType.GOAL) {
-              const key = `${pos.row},${pos.col}`;
-              if (!exploredBy.has(key)) {
-                exploredBy.set(key, new Set());
-              }
-              exploredBy.get(key)!.add('bfs');
-              
-              const algorithms = exploredBy.get(key)!;
-              if (algorithms.size === 1) {
-                newStates[pos.row][pos.col] = CellState.BFS_EXPLORED;
-              } else {
-                // Multiple algorithms - show blended color
-                newStates[pos.row][pos.col] = CellState.EXPLORED;
-              }
-            }
-          }
-          
-          // Update A* exploration (Green)
-          if (step < astarResult.explorationOrder.length) {
-            const pos = astarResult.explorationOrder[step];
-            if (grid[pos.row][pos.col] !== CellType.START && grid[pos.row][pos.col] !== CellType.GOAL) {
-              const key = `${pos.row},${pos.col}`;
-              if (!exploredBy.has(key)) {
-                exploredBy.set(key, new Set());
-              }
-              exploredBy.get(key)!.add('astar');
-              
-              const algorithms = exploredBy.get(key)!;
-              if (algorithms.size === 1) {
-                newStates[pos.row][pos.col] = CellState.ASTAR_EXPLORED;
-              } else {
-                // Multiple algorithms - show blended color
-                newStates[pos.row][pos.col] = CellState.EXPLORED;
-              }
-            }
-          }
+          });
           
           return newStates;
         });
@@ -270,125 +279,26 @@ function App() {
         }
         
         clearInterval(intervalId);
-        setResults([dfsResult, bfsResult, astarResult]);
-        setIsRunning(false);
-      }
-    }, Math.max(1, 101 - animationSpeed));
-  };
-
-  /**
-   * Run comparison of A* variants (A*, Weighted A*, IDA*)
-   */
-  const runAStarComparison = async () => {
-    const { start, goal } = findPositions(grid);
-    if (!start || !goal) {
-      alert('Start or goal position not found!');
-      return;
-    }
-
-    setIsRunning(true);
-    resetVisualization();
-
-    // Execute all A* variants
-    const astarResult = executeAStar(grid, start, goal);
-    const weightedAstarResult = executeWeightedAStar(grid, start, goal);
-    const idaStarResult = executeIDAStar(grid, start, goal);
-
-    // Track which algorithms have explored each cell
-    const exploredBy: Map<string, Set<string>> = new Map();
-
-    const maxExplorationSteps = Math.max(
-      astarResult.explorationOrder.length,
-      weightedAstarResult.explorationOrder.length,
-      idaStarResult.explorationOrder.length
-    );
-
-    // Animate all A* variants concurrently with different colors
-    let step = 0;
-    const intervalId = setInterval(() => {
-      if (step < maxExplorationSteps) {
-        setCellStates((prev) => {
-          const newStates = prev.map((row) => [...row]);
-          
-          // Update A* exploration (Green)
-          if (step < astarResult.explorationOrder.length) {
-            const pos = astarResult.explorationOrder[step];
-            if (grid[pos.row][pos.col] !== CellType.START && grid[pos.row][pos.col] !== CellType.GOAL) {
-              const key = `${pos.row},${pos.col}`;
-              if (!exploredBy.has(key)) {
-                exploredBy.set(key, new Set());
-              }
-              exploredBy.get(key)!.add('astar');
-              
-              const algorithms = exploredBy.get(key)!;
-              if (algorithms.size === 1) {
-                newStates[pos.row][pos.col] = CellState.ASTAR_EXPLORED;
-              } else {
-                newStates[pos.row][pos.col] = CellState.EXPLORED;
-              }
-            }
-          }
-          
-          // Update Weighted A* exploration (Red)
-          if (step < weightedAstarResult.explorationOrder.length) {
-            const pos = weightedAstarResult.explorationOrder[step];
-            if (grid[pos.row][pos.col] !== CellType.START && grid[pos.row][pos.col] !== CellType.GOAL) {
-              const key = `${pos.row},${pos.col}`;
-              if (!exploredBy.has(key)) {
-                exploredBy.set(key, new Set());
-              }
-              exploredBy.get(key)!.add('weighted');
-              
-              const algorithms = exploredBy.get(key)!;
-              if (algorithms.size === 1) {
-                newStates[pos.row][pos.col] = CellState.DFS_EXPLORED;
-              } else {
-                newStates[pos.row][pos.col] = CellState.EXPLORED;
-              }
-            }
-          }
-          
-          // Update IDA* exploration (Blue)
-          if (step < idaStarResult.explorationOrder.length) {
-            const pos = idaStarResult.explorationOrder[step];
-            if (grid[pos.row][pos.col] !== CellType.START && grid[pos.row][pos.col] !== CellType.GOAL) {
-              const key = `${pos.row},${pos.col}`;
-              if (!exploredBy.has(key)) {
-                exploredBy.set(key, new Set());
-              }
-              exploredBy.get(key)!.add('ida');
-              
-              const algorithms = exploredBy.get(key)!;
-              if (algorithms.size === 1) {
-                newStates[pos.row][pos.col] = CellState.BFS_EXPLORED;
-              } else {
-                newStates[pos.row][pos.col] = CellState.EXPLORED;
-              }
-            }
-          }
-          
-          return newStates;
-        });
-        step++;
-      } else {
-        // Show final path (standard A* typically has the best path)
-        if (astarResult.path.length > 0) {
-          setCellStates((prev) => {
-            const newStates = prev.map((row) => [...row]);
-            for (const pos of astarResult.path) {
-              if (grid[pos.row][pos.col] !== CellType.START && grid[pos.row][pos.col] !== CellType.GOAL) {
-                newStates[pos.row][pos.col] = CellState.PATH;
-              }
-            }
-            return newStates;
-          });
-        }
         
-        clearInterval(intervalId);
-        setResults([astarResult, weightedAstarResult, idaStarResult]);
+        // Calculate visual time for each algorithm to reach goal
+        const animationEndTime = performance.now();
+        const totalVisualTime = animationEndTime - animationStartTime;
+        
+        // Create updated results with visual timing
+        const updatedResults = [dfsResult, bfsResult, astarResult].map(result => {
+          const stepsToGoal = goalReachedStep[result.algorithmName] ?? result.explorationOrder.length;
+          const visualTime = (stepsToGoal / maxExplorationSteps) * totalVisualTime;
+          return {
+            ...result,
+            timeTaken: visualTime, // Use visual time instead of computation time
+            stepsToGoal, // Add steps to goal for analytics
+          };
+        });
+        
+        setResults(updatedResults);
         setIsRunning(false);
       }
-    }, Math.max(1, 101 - animationSpeed));
+    }, stepDuration);
   };
 
   /**
@@ -474,7 +384,6 @@ function App() {
           onAlgorithmSelect={setSelectedAlgorithm}
           onRunAlgorithm={runAlgorithm}
           onRunComparison={runComparison}
-          onRunAStarComparison={runAStarComparison}
           onResetVisualization={resetVisualization}
           onGenerateMaze={handleGenerateMaze}
           onClearMaze={handleClearMaze}

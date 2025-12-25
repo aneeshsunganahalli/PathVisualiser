@@ -51,31 +51,81 @@ const Grid: React.FC<GridProps> = ({ grid, cellStates, onCellClick, editMode, is
   }, [grid]);
 
   /**
-   * Get cell color based on type and state
+   * Get cell styling based on type and state with better visibility for comparison
    */
-  const getCellColor = (type: CellType, state: CellState): string => {
-    // Cell type takes precedence
-    if (type === CellType.WALL) return '#111111';
-    if (type === CellType.START) return '#10b981';
-    if (type === CellType.GOAL) return '#ef4444';
+  const getCellStyle = (type: CellType, state: CellState): React.CSSProperties => {
+    const baseStyle: React.CSSProperties = {
+      width: `${cellSize}px`,
+      height: `${cellSize}px`,
+      border: '0.5px solid rgba(255, 255, 255, 0.05)',
+      cursor: getCursorStyle(),
+      transition: 'all 0.15s cubic-bezier(0.4, 0, 0.2, 1)',
+    };
 
-    // Then check state - with algorithm-specific colors
+    // Algorithm colors
+    const DFS_COLOR = '#f97316';  // Orange
+    const BFS_COLOR = '#3b82f6';  // Blue
+    const ASTAR_COLOR = '#22c55e'; // Green
+
+    // Cell type takes precedence
+    if (type === CellType.WALL) return { ...baseStyle, backgroundColor: '#111111' };
+    if (type === CellType.START) return { ...baseStyle, backgroundColor: '#10b981', boxShadow: '0 0 8px rgba(16, 185, 129, 0.6)' };
+    if (type === CellType.GOAL) return { ...baseStyle, backgroundColor: '#ef4444', boxShadow: '0 0 8px rgba(239, 68, 68, 0.6)' };
+
+    // Then check state - solid colors for single algorithms, gradients for combinations
     switch (state) {
       case CellState.FRONTIER:
-        return '#3b82f6'; // Blue - in queue/stack
+        return { ...baseStyle, backgroundColor: '#60a5fa' };
+      
+      // Single algorithm - solid colors
       case CellState.DFS_EXPLORED:
-        return '#ef4444'; // Red - DFS
+        return { ...baseStyle, backgroundColor: DFS_COLOR };
       case CellState.BFS_EXPLORED:
-        return '#3b82f6'; // Blue - BFS
+        return { ...baseStyle, backgroundColor: BFS_COLOR };
       case CellState.ASTAR_EXPLORED:
-        return '#10b981'; // Green - A*
+        return { ...baseStyle, backgroundColor: ASTAR_COLOR };
+      
+      // Two algorithms - gradient of those two colors
+      case CellState.DFS_BFS_EXPLORED:
+        return { 
+          ...baseStyle, 
+          background: `linear-gradient(135deg, ${DFS_COLOR} 0%, ${BFS_COLOR} 100%)`,
+        };
+      case CellState.DFS_ASTAR_EXPLORED:
+        return { 
+          ...baseStyle, 
+          background: `linear-gradient(135deg, ${DFS_COLOR} 0%, ${ASTAR_COLOR} 100%)`,
+        };
+      case CellState.BFS_ASTAR_EXPLORED:
+        return { 
+          ...baseStyle, 
+          background: `linear-gradient(135deg, ${BFS_COLOR} 0%, ${ASTAR_COLOR} 100%)`,
+        };
+      
+      // All three algorithms - gradient with all three colors
+      case CellState.ALL_EXPLORED:
+        return { 
+          ...baseStyle, 
+          background: `linear-gradient(135deg, ${DFS_COLOR} 0%, ${BFS_COLOR} 50%, ${ASTAR_COLOR} 100%)`,
+        };
+      
+      // Generic explored (fallback)
       case CellState.EXPLORED:
-        return '#8b5cf6'; // Purple - overlapping algorithms
+        return { 
+          ...baseStyle, 
+          background: `linear-gradient(135deg, ${DFS_COLOR} 0%, ${BFS_COLOR} 50%, ${ASTAR_COLOR} 100%)`,
+        };
+      
       case CellState.PATH:
-        return '#fbbf24'; // Amber - final path
+        return { 
+          ...baseStyle, 
+          backgroundColor: '#fbbf24',
+          boxShadow: '0 0 8px rgba(251, 191, 36, 0.7)',
+        };
+      
       case CellState.UNEXPLORED:
       default:
-        return '#1f2937'; // Dark gray - not yet visited
+        return { ...baseStyle, backgroundColor: '#1f2937' };
     }
   };
 
@@ -103,9 +153,11 @@ const Grid: React.FC<GridProps> = ({ grid, cellStates, onCellClick, editMode, is
       style={{
         display: 'inline-block',
         border: '2px solid rgba(59, 130, 246, 0.3)',
-        borderRadius: '8px',
+        borderRadius: '12px',
         overflow: 'hidden',
-        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)',
+        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
+        background: '#0f0f0f',
+        padding: '4px',
       }}
     >
       {grid.map((row, rowIndex) => (
@@ -118,20 +170,13 @@ const Grid: React.FC<GridProps> = ({ grid, cellStates, onCellClick, editMode, is
         >
           {row.map((cell, colIndex) => {
             const state = cellStates[rowIndex][colIndex];
-            const color = getCellColor(cell, state);
+            const style = getCellStyle(cell, state);
             
             return (
               <div
                 key={`${rowIndex}-${colIndex}`}
                 onClick={() => !isRunning && onCellClick(rowIndex, colIndex)}
-                style={{
-                  width: `${cellSize}px`,
-                  height: `${cellSize}px`,
-                  backgroundColor: color,
-                  border: '0.5px solid rgba(255, 255, 255, 0.05)',
-                  cursor: getCursorStyle(),
-                  transition: 'all 0.15s cubic-bezier(0.4, 0, 0.2, 1)',
-                }}
+                style={style}
                 title={`(${rowIndex}, ${colIndex}) - ${cell} - ${state}`}
               />
             );

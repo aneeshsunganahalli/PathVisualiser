@@ -11,7 +11,6 @@ interface ControlsProps {
   onAlgorithmSelect: (algorithm: Algorithm) => void;
   onRunAlgorithm: () => void;
   onRunComparison: () => void;
-  onRunAStarComparison: () => void;
   onResetVisualization: () => void;
   onGenerateMaze: () => void;
   onClearMaze: () => void;
@@ -27,7 +26,6 @@ const Controls: React.FC<ControlsProps> = ({
   onAlgorithmSelect,
   onRunAlgorithm,
   onRunComparison,
-  onRunAStarComparison,
   onResetVisualization,
   onGenerateMaze,
   onClearMaze,
@@ -38,6 +36,12 @@ const Controls: React.FC<ControlsProps> = ({
   isRunning,
 }) => {
   const [showEditModal, setShowEditModal] = useState(false);
+
+  const algorithmInfo: Record<Algorithm, { color: string; icon: string }> = {
+    [Algorithm.DFS]: { color: '#f97316', icon: '🔴' },
+    [Algorithm.BFS]: { color: '#3b82f6', icon: '🔵' },
+    [Algorithm.ASTAR]: { color: '#22c55e', icon: '🟢' },
+  };
 
   return (
     <>
@@ -50,9 +54,12 @@ const Controls: React.FC<ControlsProps> = ({
               key={algo}
               onClick={() => onAlgorithmSelect(algo)}
               disabled={isRunning}
-              className={`btn btn-sm ${selectedAlgorithm === algo ? 'btn-primary' : 'btn-secondary'}`}
+              className={`btn btn-sm ${selectedAlgorithm === algo ? 'btn-algo-selected' : 'btn-algo'}`}
+              style={{
+                borderLeft: `3px solid ${algorithmInfo[algo].color}`,
+              }}
             >
-              {algo}
+              {algorithmInfo[algo].icon} {algo}
             </button>
           ))}
         </div>
@@ -72,18 +79,10 @@ const Controls: React.FC<ControlsProps> = ({
           <button
             onClick={onRunComparison}
             disabled={isRunning}
-            className="btn btn-sm btn-warning"
+            className="btn btn-sm btn-compare"
+            title="Compare DFS, BFS, and A* simultaneously"
           >
             🔄 Compare All
-          </button>
-          
-          <button
-            onClick={onRunAStarComparison}
-            disabled={isRunning}
-            className="btn btn-sm btn-warning"
-            title="Compare A*, Weighted A*, and IDA*"
-          >
-            ⭐ Compare A* Variants
           </button>
           
           <button
@@ -104,13 +103,13 @@ const Controls: React.FC<ControlsProps> = ({
             disabled={isRunning}
             className="btn btn-sm btn-primary"
           >
-            🎲 Generate Maze
+            🎲 New Maze
           </button>
           
           <button
             onClick={() => setShowEditModal(true)}
             disabled={isRunning}
-            className="btn btn-sm btn-primary"
+            className="btn btn-sm btn-secondary"
           >
             ✏️ Edit
           </button>
@@ -131,6 +130,14 @@ const Controls: React.FC<ControlsProps> = ({
             disabled={isRunning}
           />
           <span className="speed-value-inline">{animationSpeed}</span>
+        </div>
+
+        {/* Legend */}
+        <div className="toolbar-divider" />
+        <div className="toolbar-group legend-group">
+          <span className="legend-item"><span className="legend-dot" style={{ background: '#f97316' }}></span>DFS</span>
+          <span className="legend-item"><span className="legend-dot" style={{ background: '#3b82f6' }}></span>BFS</span>
+          <span className="legend-item"><span className="legend-dot" style={{ background: '#22c55e' }}></span>A*</span>
         </div>
       </div>
 

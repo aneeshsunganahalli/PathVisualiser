@@ -16,9 +16,13 @@ export enum CellState {
   FRONTIER = 'frontier',      // In the open set (to be explored)
   EXPLORED = 'explored',       // Already visited
   PATH = 'path',               // Part of the final solution path
-  DFS_EXPLORED = 'dfs_explored',     // Explored by DFS
-  BFS_EXPLORED = 'bfs_explored',     // Explored by BFS
-  ASTAR_EXPLORED = 'astar_explored', // Explored by A*
+  DFS_EXPLORED = 'dfs_explored',     // Explored by DFS only
+  BFS_EXPLORED = 'bfs_explored',     // Explored by BFS only
+  ASTAR_EXPLORED = 'astar_explored', // Explored by A* only
+  DFS_BFS_EXPLORED = 'dfs_bfs_explored',     // Explored by DFS and BFS
+  DFS_ASTAR_EXPLORED = 'dfs_astar_explored', // Explored by DFS and A*
+  BFS_ASTAR_EXPLORED = 'bfs_astar_explored', // Explored by BFS and A*
+  ALL_EXPLORED = 'all_explored',             // Explored by all three
 }
 
 // Position in the grid
@@ -42,8 +46,9 @@ export interface AlgorithmResult {
   explorationOrder: Position[]; // Order in which nodes were explored
   nodesExpanded: number;       // Total nodes explored
   pathLength: number;          // Length of final path (0 if not found)
-  timeTaken: number;           // Time in milliseconds
+  timeTaken: number;           // Time in milliseconds (visual time in comparison mode)
   isOptimal: boolean;          // Whether the path is guaranteed to be optimal
+  stepsToGoal?: number;        // Number of steps to reach goal (for comparison)
 }
 
 // A* specific node data
@@ -66,8 +71,6 @@ export enum Algorithm {
   DFS = 'DFS',
   BFS = 'BFS',
   ASTAR = 'A*',
-  WEIGHTED_ASTAR = 'Weighted A*',
-  IDA_STAR = 'IDA*',
 }
 
 // Edit mode for user interaction
