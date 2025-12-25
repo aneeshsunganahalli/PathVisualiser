@@ -85,38 +85,51 @@ body {
   box-shadow: 0 0 6px currentColor;
 }
 
-/* Main Grid - Maze on left, Metrics on right */
-.main-grid {
-  display: grid;
-  grid-template-columns: 1fr 400px;
-  gap: 24px;
-  padding: 24px 32px;
+/* Main Content Layout */
+.main-content {
+  display: flex;
+  gap: 20px;
+  padding: 20px 24px;
   max-width: 1920px;
   margin: 0 auto;
   width: 100%;
+  min-height: calc(100vh - 70px);
 }
 
-.maze-section {
+.visualization-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+
+.maze-container {
   display: flex;
   justify-content: center;
-  align-items: flex-start;
-  padding: 32px;
+  align-items: center;
+  padding: 24px;
   background: rgba(24, 24, 32, 0.6);
-  backdrop-filter: blur(8px);
-  border-radius: 20px;
+  border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+}
+
+.analysis-inline {
+  flex-shrink: 0;
 }
 
 .metrics-sidebar {
+  width: 380px;
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
-/* Analysis Container - Full width at bottom */
+/* Analysis Section Full Width (kept for backwards compatibility) */
 .analysis-container {
-  padding: 0 32px 32px 32px;
+  padding: 0 24px 24px 24px;
   max-width: 1920px;
   margin: 0 auto;
   width: 100%;
@@ -124,11 +137,25 @@ body {
 
 .analysis-section-full {
   background: rgba(24, 24, 32, 0.8);
-  backdrop-filter: blur(8px);
-  border-radius: 20px;
-  padding: 28px;
+  border-radius: 16px;
+  padding: 24px;
   border: 1px solid rgba(59, 130, 246, 0.15);
-  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+}
+
+/* Responsive design */
+@media (max-width: 1200px) {
+  .main-content {
+    flex-direction: column;
+  }
+
+  .metrics-sidebar {
+    width: 100%;
+  }
+  
+  .visualization-area {
+    width: 100%;
+  }
 }
 
 /* Responsive design */

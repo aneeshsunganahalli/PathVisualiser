@@ -73,10 +73,11 @@ function App() {
   /**
    * Animate algorithm execution step by step
    */
-  const animateAlgorithm = async (result: AlgorithmResult): Promise<void> => {
+  const animateAlgorithm = async (result: AlgorithmResult): Promise<number> => {
     return new Promise((resolve) => {
       const { explorationOrder, path } = result;
       let step = 0;
+      const startTime = performance.now();
 
       const intervalId = setInterval(() => {
         if (step < explorationOrder.length) {
@@ -103,10 +104,12 @@ function App() {
             return newStates;
           });
           clearInterval(intervalId);
-          resolve();
+          const visualTime = performance.now() - startTime;
+          resolve(visualTime);
         } else {
           clearInterval(intervalId);
-          resolve();
+          const visualTime = performance.now() - startTime;
+          resolve(visualTime);
         }
       }, Math.max(1, 101 - animationSpeed)); // Speed control
     });
@@ -143,10 +146,14 @@ function App() {
         return;
     }
 
-    // Animate
-    await animateAlgorithm(result);
+    // Animate and get visual time
+    const visualTime = await animateAlgorithm(result);
 
-    setResults([result]);
+    // Update result with visual timing
+    setResults([{
+      ...result,
+      timeTaken: visualTime
+    }]);
     setIsRunning(false);
   };
 
@@ -395,27 +402,30 @@ function App() {
         />
       </div>
 
-      <div className="main-grid">
-        <div className="maze-section">
-          <Grid
-            grid={grid}
-            cellStates={cellStates}
-            onCellClick={handleCellClick}
-            editMode={editMode}
-            isRunning={isRunning}
-          />
+      <div className="main-content">
+        <div className="visualization-area">
+          <div className="maze-container">
+            <Grid
+              grid={grid}
+              cellStates={cellStates}
+              onCellClick={handleCellClick}
+              editMode={editMode}
+              isRunning={isRunning}
+            />
+          </div>
+          
+          {/* Analysis panel below maze when in comparison mode */}
+          {results.length > 1 && (
+            <div className="analysis-inline">
+              <MetricsPanel results={results} showAnalysis={true} metricsOnly={false} />
+            </div>
+          )}
         </div>
 
         <div className="metrics-sidebar">
           <MetricsPanel results={results} showAnalysis={false} />
         </div>
       </div>
-
-      {results.length > 1 && (
-        <div className="analysis-container">
-          <MetricsPanel results={results} showAnalysis={true} metricsOnly={false} />
-        </div>
-      )}
     </div>
   );
 }

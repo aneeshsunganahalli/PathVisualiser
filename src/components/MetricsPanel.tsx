@@ -338,7 +338,7 @@ const MetricsPanel: React.FC<MetricsPanelProps> = ({ results, showAnalysis = tru
               <div className="metric-item">
                 <div className="metric-label">Time</div>
                 <div className="metric-value" style={{ color }}>
-                  {result.timeTaken.toFixed(2)}ms
+                  {(result.timeTaken / 1000).toFixed(2)}s
                 </div>
               </div>
             </div>
